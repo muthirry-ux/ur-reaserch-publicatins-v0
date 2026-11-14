@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IURDAS Strategic Intelligence | UR Publications, Grants & Partnerships Portal</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <style>
+    :root {
+      /* Official University of Rwanda & IURDAS Executive Palette */
+      --ur-teal: #1A637B;
+      --ur-teal-dark: #104253;
+      --ur-teal-light: #2682A1;
+      --bg-canvas: #0D1117;
+      --bg-sidebar: #11161F;
+      --bg-card: #161C26;
+      --bg-card-alt: #1A222E;
+      --bg-input: #1E2634;
+      --border-subtle: #2A3444;
+      --accent-blue: #1E90FF;
+      --accent-cyan: #38BDF8;
+      --accent-emerald: #10B981;
+      --accent-amber: #F59E0B;
+      --text-primary: #F8FAFC;
+      --text-secondary: #94A3B8;
+      --text-muted: #64748B;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-canvas);
+      color: var(--text-primary);
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Left Navigation Rail */
+    .sidebar {
+      width: 245px;
+      background-color: var(--bg-sidebar);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .sidebar-header {
+      background: linear-gradient(135deg, var(--ur-teal-dark), var(--ur-teal));
+      padding: 18px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 0.3px;
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .nav-section-title {
+      padding: 18px 16px 8px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    .nav-item {
+      padding: 12px 18px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-left: 3px solid transparent;
+      transition: all 0.15s ease;
+    }
+
+    .nav-item:hover {
+      background-color: rgba(255, 255, 255, 0.04);
+      color: var(--text-primary);
+    }
+
+    .nav-item.active {
+      background-color: rgba(26, 99, 123, 0.35);
+      color: #FFFFFF;
+      border-left-color: var(--accent-cyan);
+      font-weight: 600;
+    }
+
+    .sidebar-horizon-box {
+      margin: 16px;
+      padding: 12px;
+      background: rgba(26, 99, 123, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 4px;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .sidebar-horizon-box strong {
+      color: var(--accent-cyan);
+      display: block;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      font-size: 10px;
+      letter-spacing: 0.6px;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 16px;
+      border-top: 1px solid var(--border-subtle);
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Main Workspace */
+    .main-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    /* Top Control Ribbon */
+    .utility-bar {
+      background-color: #131923;
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 8px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 12px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(26, 99, 123, 0.25);
+      border: 1px solid var(--ur-teal);
+      color: var(--accent-cyan);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background-color: var(--bg-input);
+      color: var(--text-primary);
+      border: 1px solid var(--border-subtle);
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn:hover {
+      border-color: var(--accent-cyan);
+      background-color: #253042;
+    }
+
+    .btn-primary {
+      background-color: var(--ur-teal);
+      border-color: var(--ur-teal-light);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--ur-teal-light);
+    }
+
+    /* Executive Header */
+    .exec-header {
+      padding: 16px 20px 10px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .brand-block {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .ur-logo-frame {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      padding: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 0 2px var(--ur-teal), 0 4px 14px rgba(0,0,0,0.5);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .ur-logo-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .title-block h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      color: #FFFFFF;
+    }
+
+    .title-block p {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 3px;
+    }
+
+    /* College Tile Selector */
+    .college-tiles {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+    }
+
+    .college-btn {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      padding: 9px 13px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 3px;
+      cursor: pointer;
+      min-width: 60px;
+      text-align: center;
+      transition: all 0.15s ease;
+    }
+
+    .college-btn:hover {
+      border-color: var(--accent-cyan);
+    }
+
+    .college-btn.active {
+      background-color: var(--ur-teal);
+      border-color: var(--accent-cyan);
+      color: #FFFFFF;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+    }
+
+    /* Top Executive KPI Cards */
+    .kpi-stack {
+      display: flex;
+      gap: 10px;
+    }
+
+    .kpi-mini-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-top: 3px solid var(--ur-teal);
+      padding: 8px 14px;
+      border-radius: 4px;
+      text-align: center;
+      min-width: 128px;
+    }
+
+    .kpi-mini-card .val {
+      font-size: 21px;
+      font-weight: 700;
+      color: #FFFFFF;
+    }
+
+    .kpi-mini-card .lbl {
+      font-size: 10px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .kpi-mini-card .sub {
+      font-size: 10px;
+      color: var(--accent-emerald);
+      margin-top: 2px;
+      font-weight: 600;
+    }
+
+    /* Automated Executive Strategic Insights Banner */
+    .exec-insights-bar {
+      margin: 4px 20px 12px;
+      background: linear-gradient(90deg, rgba(26, 99, 123, 0.28) 0%, rgba(22, 28, 38, 0.95) 100%);
+      border: 1px solid var(--ur-teal);
+      border-left: 4px solid var(--accent-cyan);
+      border-radius: 4px;
+      padding: 12px 16px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .insight-item {
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      padding-right: 12px;
+    }
+
+    .insight-item:last-child {
+      border-right: none;
+      padding-right: 0;
+    }
+
+    .insight-tag {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: var(--accent-cyan);
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .insight-text {
+      font-size: 12px;
+      color: #E2E8F0;
+      line-height: 1.4;
+    }
+
+    .insight-text strong {
+      color: #FFFFFF;
+    }
+
+    /* Slicer Bar */
+    .slicers-bar {
+      padding: 4px 20px 14px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr) auto;
+      gap: 12px;
+      align-items: end;
+    }
+
+    .slicer-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+
+    .slicer-group select, .slicer-group input {
+      width: 100%;
+      background-color: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      padding: 7px 10px;
+      border-radius: 3px;
+      font-size: 12px;
+      outline: none;
+    }
+
+    .slicer-group select:focus, .slicer-group input:focus {
+      border-color: var(--accent-cyan);
+    }
+
+    /* Views Container */
+    .view-section {
+      display: none;
+    }
+
+    .view-section.active {
+      display: block;
+    }
+
+    /* 3x2 Executive Visuals Grid */
+    .dashboard-grid {
+      padding: 0 20px 20px;
+      display: grid;
+      grid-template-columns: 1.05fr 0.9fr 1.35fr;
+      gap: 14px;
+    }
+
+    .dashboard-grid-2col {
+      padding: 0 20px 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .visual-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      min-height: 270px;
+    }
+
+    .visual-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .visual-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #FFFFFF;
+    }
+
+    .visual-badge {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--accent-cyan);
+      background: rgba(56, 189, 248, 0.12);
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    .visual-takeaway {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .chart-container {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      min-height: 195px;
+    }
+
+    /* Strategic Ledger Section */
+    .ledger-section {
+      margin: 0 20px 24px;
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      padding: 16px;
+    }
+
+    .ledger-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      max-height: 360px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      text-align: left;
+    }
+
+    thead th {
+      background-color: #1B2330;
+      color: var(--text-secondary);
+      font-weight: 600;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      position: sticky;
+      top: 0;
+    }
+
+    tbody td {
+      padding: 9px 12px;
+      border-bottom: 1px solid rgba(42, 52, 68, 0.6);
+      color: var(--text-primary);
+    }
+
+    tbody tr:hover {
+      background-color: rgba(26, 99, 123, 0.18);
+    }
+
+    .tag {
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .tag-grant {
+      background: rgba(30, 144, 255, 0.18);
+      color: #60A5FA;
+      border: 1px solid rgba(30, 144, 255, 0.4);
+    }
+
+    .tag-partner {
+      background: rgba(16, 185, 129, 0.16);
+      color: #34D399;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+
+    .tag-internal {
+      background: rgba(148, 163, 184, 0.15);
+      color: #CBD5E1;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.78);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-box {
+      background: var(--bg-card);
+      border: 1px solid var(--ur-teal-light);
+      border-radius: 6px;
+      width: 560px;
+      max-width: 94vw;
+      padding: 22px;
+    }
+
+    .modal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 14px 0;
+    }
+
+    @media (max-width: 1280px) {
+      .dashboard-grid { grid-template-columns: 1fr 1fr; }
+      .exec-header { grid-template-columns: 1fr; }
+      .exec-insights-bar { grid-template-columns: 1fr 1fr; }
+      .slicers-bar { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .dashboard-grid, .dashboard-grid-2col, .exec-insights-bar { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Left Navigation Rail -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <span>📊</span>
+      <span>IURDAS Strategic Portal</span>
+    </div>
+
+    <div class="nav-section-title">Executive Intelligence</div>
+    <div class="nav-item active" onclick="switchTab('tab-overview', this)">
+      <span>Executive Overview</span>
+      <span>●</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('tab-grants', this)">
+      <span>Grant Proposals & ROI</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('tab-partners', this)">
+      <span>Strategic Partnerships</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('tab-ledger', this)">
+      <span>Longitudinal Data Ledger</span>
+    </div>
+
+    <div class="sidebar-horizon-box">
+      <strong>Perpetual Reporting Horizon</strong>
+      <span id="horizonSummary">Active Span: Auto-scaling across all recorded years without upper-bound lock-in.</span>
+    </div>
+
+    <div class="sidebar-footer">
+      <strong>University of Rwanda</strong><br />
+      Integrated Data Analytics System (IURDAS)<br />
+      Office of Strategic Planning & Research
+    </div>
+  </aside>
+
+  <!-- Main Workspace -->
+  <div class="main-wrapper">
+    <!-- Top Data Governance & Ingestion Bar -->
+    <div class="utility-bar">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span class="status-pill" id="dataSourceBadge">● Active Repository: Longitudinal UR Grants & Publications</span>
+        <span style="color:var(--text-secondary);" id="horizonPill">Horizon: Multi-Year Dynamic</span>
+      </div>
+      <div class="action-buttons">
+        <label class="btn" style="cursor:pointer;">
+          📂 Import CSV (`Publications_Since_2013.csv`)
+          <input type="file" id="csvFileInput" accept=".csv" style="display:none;" />
+        </label>
+        <button class="btn btn-primary" onclick="openModal()">+ Log Grant & Output Record</button>
+        <button class="btn" onclick="exportFilteredCSV()">⬇ Export Executive Brief (CSV)</button>
+      </div>
+    </div>
+
+    <!-- Brand, College Tiles & Executive KPI Summary -->
+    <div class="exec-header">
+      <div class="brand-block">
+        <div class="ur-logo-frame">
+          <img src="UR Logo.png" alt="University of Rwanda Logo"
+               onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 120 120%22><circle cx=%2260%22 cy=%2260%22 r=%2256%22 fill=%22%231A637B%22 stroke=%22%23FFFFFF%22 stroke-width=%223%22/><text x=%2260%22 y=%2274%22 font-family=%22Georgia,serif%22 font-size=%2246%22 font-weight=%22bold%22 fill=%22%23FFFFFF%22 text-anchor=%22middle%22>UR</text></svg>';" />
+        </div>
+        <div class="title-block">
+          <h1>Publications, Grants & Partnerships</h1>
+          <p id="subtitleDynamic">Long-Term Institutional Research Output & External Funding Intelligence</p>
+        </div>
+      </div>
+
+      <!-- College Quick-Filter Buttons -->
+      <div class="college-tiles" id="collegeTiles">
+        <button class="college-btn active" data-college="ALL" onclick="selectCollege('ALL')">ALL</button>
+        <button class="college-btn" data-college="CAFF" onclick="selectCollege('CAFF')">CAFF</button>
+        <button class="college-btn" data-college="CASS" onclick="selectCollege('CASS')">CASS</button>
+        <button class="college-btn" data-college="CAVM" onclick="selectCollege('CAVM')">CAVM</button>
+        <button class="college-btn" data-college="CBE" onclick="selectCollege('CBE')">CBE</button>
+        <button class="college-btn" data-college="CE" onclick="selectCollege('CE')">CE</button>
+        <button class="college-btn" data-college="CMHS" onclick="selectCollege('CMHS')">CMHS</button>
+        <button class="college-btn" data-college="CST" onclick="selectCollege('CST')">CST</button>
+        <button class="college-btn" data-college="CVAS" onclick="selectCollege('CVAS')">CVAS</button>
+      </div>
+
+      <!-- Executive KPI Cards -->
+      <div class="kpi-stack">
+        <div class="kpi-mini-card">
+          <div class="val" id="kpiTotalPubs">0</div>
+          <div class="lbl">Total Publications</div>
+          <div class="sub" id="kpiCagrLabel">+0.0% CAGR</div>
+        </div>
+        <div class="kpi-mini-card" style="border-top-color: var(--accent-cyan);">
+          <div class="val" id="kpiGrantShare">0%</div>
+          <div class="lbl">Grant-Backed Share</div>
+          <div class="sub" id="kpiGrantValue">$0M Portfolio</div>
+        </div>
+        <div class="kpi-mini-card" style="border-top-color: var(--accent-emerald);">
+          <div class="val" id="kpiCitations">0</div>
+          <div class="lbl">Cumulative Citations</div>
+          <div class="sub" id="kpiCitPerPub">0.0 Cit / Pub</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dynamic Automated Executive Insights Strip -->
+    <div class="exec-insights-bar">
+      <div class="insight-item">
+        <div class="insight-tag">▲ Strategic Growth Trajectory</div>
+        <div class="insight-text" id="insightGrowth">Calculating multi-year research output velocity...</div>
+      </div>
+      <div class="insight-item">
+        <div class="insight-tag">🏛 Institutional Concentration</div>
+        <div class="insight-text" id="insightCollege">Analyzing college-level publication leadership...</div>
+      </div>
+      <div class="insight-item">
+        <div class="insight-tag">💼 Grant Leverage & Conversion</div>
+        <div class="insight-text" id="insightGrant">Evaluating grant proposal conversion efficiency...</div>
+      </div>
+      <div class="insight-item">
+        <div class="insight-tag">🌐 Partnership & Quality Impact</div>
+        <div class="insight-text" id="insightQuality">Assessing Q1/Q2 high-impact journal penetration...</div>
+      </div>
+    </div>
+
+    <!-- Multi-Dimensional Slicers -->
+    <div class="slicers-bar">
+      <div class="slicer-group">
+        <label>Reporting Year (All Recorded)</label>
+        <select id="filterYear" onchange="applyFilters()">
+          <option value="ALL">All Years (Full Horizon)</option>
+        </select>
+      </div>
+      <div class="slicer-group">
+        <label>Grant Mechanism / Funding Stream</label>
+        <select id="filterFunding" onchange="applyFilters()">
+          <option value="ALL">All Funding Streams</option>
+        </select>
+      </div>
+      <div class="slicer-group">
+        <label>Partnership / Consortium Area</label>
+        <select id="filterPartner" onchange="applyFilters()">
+          <option value="ALL">All Strategic Partnerships</option>
+        </select>
+      </div>
+      <div class="slicer-group">
+        <label>Indexing / Journal Quartile</label>
+        <select id="filterTier" onchange="applyFilters()">
+          <option value="ALL">All Indexing Tiers</option>
+        </select>
+      </div>
+      <div class="slicer-group">
+        <label>Search Grant, Partner or Theme</label>
+        <input type="text" id="filterSearch" placeholder="e.g., Sida, Horizon, ARUA, NIH, ACE..." oninput="applyFilters()" />
+      </div>
+      <button class="btn" onclick="resetFilters()" style="height:32px;">↺ Reset</button>
+    </div>
+
+    <!-- VIEW 1: EXECUTIVE OVERVIEW (3x2 Core Grid) -->
+    <div id="tab-overview" class="view-section active">
+      <div class="dashboard-grid">
+        <!-- Visual 1 -->
+        <div class="visual-card">
+          <div class="visual-header">
+            <span class="visual-title">Publications by Colleges</span>
+            <span class="visual-badge">Institutional Share</span>
+          </div>
+          <div class="visual-takeaway" id="takeawayColleges">Distribution across UR's 8 academic colleges.</div>
+          <div class="chart-container">
+            <canvas id="chartColleges"></canvas>
+          </div>
+        </div>
+
+        <!-- Visual 2 -->
+        <div class="visual-card">
+          <div class="visual-header">
+            <span class="visual-title">Publications by Grant Stream</span>
+            <span class="visual-badge">Funding Structure</span>
+          </div>
+          <div class="visual-takeaway" id="takeawayFunding">External grant dependency vs. internal funding.</div>
+          <div class="chart-container">
+            <canvas id="chartFundingDonut"></canvas>
+          </div>
+        </div>
+
+        <!-- Visual 3 -->
+        <div class="visual-card">
+          <div class="visual-header">
+            <span class="visual-title">Longitudinal Output Trajectory</span>
+            <span class="visual-badge">Perpetual Trend</span>
+          </div>
+          <div class="visual-takeaway" id="takeawayTrend">Annual progression of grant-backed vs. institutional outputs.</div>
+          <div class="chart-container">
+            <canvas id="chartTrendYears"></canvas>
+          </div>
+        </div>
+
+        <!-- Visual 4 -->
+        <div class="visual-card">
+          <div class="visual-header">
+            <span class="visual-title">Top Strategic Partnerships</span>
+            <span class="visual-badge">Consortium Output</span>
+          </div>
+          <div class="visual-takeaway" id="takeawayPartners">Highest-yielding bilateral and multilateral alliances.</div>
+          <div class="chart-container">
+            <canvas id="chartPartnerships"></canvas>
+          </div>
+        </div>
+
+        <!-- Visual 5 -->
+        <div class="visual-card">
+          <div class="visual-header">
+            <span class="visual-title">Indexing & Quartile Quality</span>
+            <span class="visual-badge">Global Visibility</span>
+          </div>
+          <div class="visual-takeaway" id="takeawayTier">Share of outputs indexed in Scopus / Web of Science.</div>
+          <div class="chart-container">
+            <canvas id="chartTierDonut"></canvas>
+          </div>
+        </div>
+
+        <!-- Visual 6 -->
+        <div class="visual-card">
+          <div class="visual-header">
+            <span class="visual-title">Competitive vs. Bilateral Growth</span>
+            <span class="visual-badge">Strategic Mix</span>
+          </div>
+          <div class="visual-takeaway" id="takeawayMix">Evolution of competitive international vs. bilateral grants.</div>
+          <div class="chart-container">
+            <canvas id="chartPartnershipTrend"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 2: GRANT PROPOSALS & ROI PIPELINE -->
+    <div id="tab-grants" class="view-section">
+      <div class="dashboard-grid-2col">
+        <div class="visual-card" style="min-height:310px;">
+          <div class="visual-header">
+            <span class="visual-title">Grant Proposal Lifecycle Funnel</span>
+            <span class="visual-badge">Proposal-to-Publication Conversion</span>
+          </div>
+          <div class="visual-takeaway" id="takeawayFunnel">Tracks institutional efficiency from proposal submission to peer-reviewed output.</div>
+          <div class="chart-container">
+            <canvas id="chartGrantFunnel"></canvas>
+          </div>
+        </div>
+
+        <div class="visual-card" style="min-height:310px;">
+          <div class="visual-header">
+            <span class="visual-title">Grant Funding Mobilized vs. Output Efficiency</span>
+            <span class="visual-badge">USD Investment & Yield</span>
+          </div>
+          <div class="visual-takeaway" id="takeawayROI">Compares total external funding mobilized by college against publication volume.</div>
+          <div class="chart-container">
+            <canvas id="chartGrantROI"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 3: STRATEGIC PARTNERSHIPS & IMPACT -->
+    <div id="tab-partners" class="view-section">
+      <div class="dashboard-grid-2col">
+        <div class="visual-card" style="min-height:310px;">
+          <div class="visual-header">
+            <span class="visual-title">Partnership Impact Matrix (Volume vs. Citations)</span>
+            <span class="visual-badge">Strategic Value</span>
+          </div>
+          <div class="visual-takeaway">Evaluates partner networks by publication scale and average citation impact.</div>
+          <div class="chart-container">
+            <canvas id="chartPartnerImpact"></canvas>
+          </div>
+        </div>
+
+        <div class="visual-card" style="min-height:310px;">
+          <div class="visual-header">
+            <span class="visual-title">Citation Velocity Across Reporting Horizon</span>
+            <span class="visual-badge">Long-Term Influence</span>
+          </div>
+          <div class="visual-takeaway">Tracks cumulative and annual citation accumulation across all recorded cohorts.</div>
+          <div class="chart-container">
+            <canvas id="chartCitationTrend"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 4 / PERSISTENT BOTTOM: LONGITUDINAL DATA LEDGER -->
+    <div class="ledger-section" id="ledgerSection">
+      <div class="ledger-header">
+        <div>
+          <span class="visual-title">Institutional Grant, Partnership & Publication Register</span>
+          <span style="font-size:12px; color:var(--text-secondary); margin-left:10px;" id="tableCountLabel">Showing 0 records</span>
+        </div>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Year</th>
+              <th>College</th>
+              <th>Grant Stream / Mechanism</th>
+              <th>Partnership / Consortium Area</th>
+              <th>Indexing Tier</th>
+              <th>Proposals</th>
+              <th>Awarded</th>
+              <th>Publications</th>
+              <th>Citations</th>
+              <th>Grant Value (USD)</th>
+            </tr>
+          </thead>
+          <tbody id="ledgerBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Strategic Data Entry (Unrestricted Year Input for Long-Term Use) -->
+  <div class="modal-backdrop" id="entryModal">
+    <div class="modal-box">
+      <h3 style="font-size:16px; margin-bottom:4px;">Record Strategic Grant & Publication Output</h3>
+      <p style="font-size:12px; color:var(--text-secondary);">Enter any reporting year (historical or future strategic plan milestone) to dynamically extend the portal.</p>
+      <div class="modal-grid">
+        <div class="slicer-group">
+          <label>Reporting Year (Unrestricted)</label>
+          <input type="number" id="mYear" value="2027" min="1990" max="2100" />
+        </div>
+        <div class="slicer-group">
+          <label>College</label>
+          <select id="mCollege">
+            <option>CMHS</option><option>CST</option><option>CAVM</option><option>CBE</option>
+            <option>CASS</option><option>CE</option><option>CAFF</option><option>CVAS</option>
+          </select>
+        </div>
+        <div class="slicer-group">
+          <label>Funding Mechanism</label>
+          <select id="mFunding">
+            <option>Competitive International Grant</option>
+            <option>Bilateral Partnership Grant</option>
+            <option>National / NCST Grant</option>
+            <option>Institutional / Self-Funded</option>
+          </select>
+        </div>
+        <div class="slicer-group">
+          <label>Partnership / Consortium</label>
+          <input type="text" id="mPartner" placeholder="e.g., Horizon Europe, UR-Sweden Sida, ARUA" value="Horizon Europe Consortium" />
+        </div>
+        <div class="slicer-group">
+          <label>Indexing Tier</label>
+          <select id="mTier">
+            <option>Scopus / WoS Q1-Q2</option>
+            <option>Scopus / WoS Q3-Q4</option>
+            <option>Peer-Reviewed Regional</option>
+          </select>
+        </div>
+        <div class="slicer-group">
+          <label>Grant Proposals Submitted</label>
+          <input type="number" id="mProposals" value="18" min="0" />
+        </div>
+        <div class="slicer-group">
+          <label>Grants Awarded</label>
+          <input type="number" id="mAwarded" value="6" min="0" />
+        </div>
+        <div class="slicer-group">
+          <label>Publications Produced</label>
+          <input type="number" id="mCount" value="24" min="1" />
+        </div>
+        <div class="slicer-group">
+          <label>Citations Accrued</label>
+          <input type="number" id="mCitations" value="65" min="0" />
+        </div>
+        <div class="slicer-group">
+          <label>Grant Funding Mobilized (USD)</label>
+          <input type="number" id="mBudget" value="420000" min="0" />
+        </div>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+        <button class="btn" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveNewRecord()">Save to Strategic Repository</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Longitudinal Dataset (2013–2026 baseline; expands infinitely as new years or CSV files are loaded)
+    let rawData = [
+      { Year: 2013, College: 'CMHS', Funding: 'Bilateral Partnership Grant', Partner: 'UR-Sweden Sida Program', Tier: 'Scopus / WoS Q1-Q2', Proposals: 22, Awarded: 8, Publications: 68, Citations: 1420, GrantUSD: 420000 },
+      { Year: 2013, College: 'CST', Funding: 'Institutional / Self-Funded', Partner: 'East African Inter-University', Tier: 'Scopus / WoS Q3-Q4', Proposals: 14, Awarded: 4, Publications: 44, Citations: 610, GrantUSD: 85000 },
+      { Year: 2014, College: 'CMHS', Funding: 'Competitive International Grant', Partner: 'NIH / Global Health Consortium', Tier: 'Scopus / WoS Q1-Q2', Proposals: 28, Awarded: 10, Publications: 84, Citations: 1890, GrantUSD: 680000 },
+      { Year: 2014, College: 'CAVM', Funding: 'Bilateral Partnership Grant', Partner: 'CGIAR / Agri-Food Network', Tier: 'Scopus / WoS Q1-Q2', Proposals: 19, Awarded: 7, Publications: 59, Citations: 980, GrantUSD: 390000 },
+      { Year: 2015, College: 'CST', Funding: 'Competitive International Grant', Partner: 'ICTP / ICT & Engineering Hub', Tier: 'Scopus / WoS Q1-Q2', Proposals: 25, Awarded: 9, Publications: 76, Citations: 1210, GrantUSD: 510000 },
+      { Year: 2015, College: 'CBE', Funding: 'Institutional / Self-Funded', Partner: 'Regional Policy & Trade Network', Tier: 'Peer-Reviewed Regional', Proposals: 12, Awarded: 3, Publications: 48, Citations: 410, GrantUSD: 60000 },
+      { Year: 2016, College: 'CMHS', Funding: 'Competitive International Grant', Partner: 'Wellcome Trust / EDCTP', Tier: 'Scopus / WoS Q1-Q2', Proposals: 34, Awarded: 12, Publications: 112, Citations: 2450, GrantUSD: 940000 },
+      { Year: 2016, College: 'CASS', Funding: 'Bilateral Partnership Grant', Partner: 'UR-Sweden Sida Program', Tier: 'Scopus / WoS Q3-Q4', Proposals: 16, Awarded: 6, Publications: 52, Citations: 530, GrantUSD: 240000 },
+      { Year: 2017, College: 'CAVM', Funding: 'Competitive International Grant', Partner: 'World Bank ACE II Centers', Tier: 'Scopus / WoS Q1-Q2', Proposals: 24, Awarded: 9, Publications: 96, Citations: 1640, GrantUSD: 1150000 },
+      { Year: 2017, College: 'CE', Funding: 'National / NCST Grant', Partner: 'MINEDUC / STEM Education Lab', Tier: 'Peer-Reviewed Regional', Proposals: 15, Awarded: 5, Publications: 41, Citations: 320, GrantUSD: 140000 },
+      { Year: 2018, College: 'CMHS', Funding: 'Competitive International Grant', Partner: 'NIH / Global Health Consortium', Tier: 'Scopus / WoS Q1-Q2', Proposals: 41, Awarded: 15, Publications: 145, Citations: 2980, GrantUSD: 1320000 },
+      { Year: 2018, College: 'CST', Funding: 'Competitive International Grant', Partner: 'World Bank ACE II Centers', Tier: 'Scopus / WoS Q1-Q2', Proposals: 33, Awarded: 11, Publications: 118, Citations: 1870, GrantUSD: 1280000 },
+      { Year: 2019, College: 'CMHS', Funding: 'Bilateral Partnership Grant', Partner: 'UR-Sweden Sida Program', Tier: 'Scopus / WoS Q1-Q2', Proposals: 45, Awarded: 18, Publications: 168, Citations: 3120, GrantUSD: 1450000 },
+      { Year: 2019, College: 'CBE', Funding: 'National / NCST Grant', Partner: 'MINECOFIN / Development Policy', Tier: 'Scopus / WoS Q3-Q4', Proposals: 21, Awarded: 7, Publications: 67, Citations: 620, GrantUSD: 210000 },
+      { Year: 2020, College: 'CMHS', Funding: 'Competitive International Grant', Partner: 'Africa CDC / Pandemic Response', Tier: 'Scopus / WoS Q1-Q2', Proposals: 54, Awarded: 21, Publications: 210, Citations: 3890, GrantUSD: 1850000 },
+      { Year: 2020, College: 'CST', Funding: 'Bilateral Partnership Grant', Partner: 'UR-Sweden Sida Program', Tier: 'Scopus / WoS Q1-Q2', Proposals: 36, Awarded: 14, Publications: 134, Citations: 1740, GrantUSD: 890000 },
+      { Year: 2021, College: 'CAVM', Funding: 'Competitive International Grant', Partner: 'Horizon Europe / Climate & Soil', Tier: 'Scopus / WoS Q1-Q2', Proposals: 39, Awarded: 13, Publications: 142, Citations: 1920, GrantUSD: 1120000 },
+      { Year: 2021, College: 'CASS', Funding: 'Competitive International Grant', Partner: 'ARUA Centers of Excellence', Tier: 'Scopus / WoS Q1-Q2', Proposals: 26, Awarded: 9, Publications: 79, Citations: 780, GrantUSD: 460000 },
+      { Year: 2022, College: 'CMHS', Funding: 'Competitive International Grant', Partner: 'EDCTP / Clinical Trials Network', Tier: 'Scopus / WoS Q1-Q2', Proposals: 62, Awarded: 24, Publications: 238, Citations: 3410, GrantUSD: 2100000 },
+      { Year: 2022, College: 'CST', Funding: 'National / NCST Grant', Partner: 'Rwanda Space & AI Innovation', Tier: 'Scopus / WoS Q1-Q2', Proposals: 42, Awarded: 16, Publications: 156, Citations: 1690, GrantUSD: 740000 },
+      { Year: 2022, College: 'CAFF', Funding: 'Bilateral Partnership Grant', Partner: 'CIFOR-ICRAF Forestry Alliance', Tier: 'Scopus / WoS Q3-Q4', Proposals: 15, Awarded: 6, Publications: 38, Citations: 340, GrantUSD: 290000 },
+      { Year: 2023, College: 'CMHS', Funding: 'Competitive International Grant', Partner: 'NIH / Global Health Consortium', Tier: 'Scopus / WoS Q1-Q2', Proposals: 68, Awarded: 26, Publications: 265, Citations: 2890, GrantUSD: 2450000 },
+      { Year: 2023, College: 'CBE', Funding: 'Competitive International Grant', Partner: 'ARUA Centers of Excellence', Tier: 'Scopus / WoS Q1-Q2', Proposals: 29, Awarded: 10, Publications: 94, Citations: 710, GrantUSD: 520000 },
+      { Year: 2023, College: 'CVAS', Funding: 'Bilateral Partnership Grant', Partner: 'One Health Veterinary Network', Tier: 'Scopus / WoS Q1-Q2', Proposals: 14, Awarded: 5, Publications: 34, Citations: 295, GrantUSD: 310000 },
+      { Year: 2024, College: 'CST', Funding: 'Competitive International Grant', Partner: 'Horizon Europe / Green Energy', Tier: 'Scopus / WoS Q1-Q2', Proposals: 51, Awarded: 19, Publications: 198, Citations: 1540, GrantUSD: 1680000 },
+      { Year: 2024, College: 'CE', Funding: 'Bilateral Partnership Grant', Partner: 'Mastercard Foundation / EdTech', Tier: 'Scopus / WoS Q3-Q4', Proposals: 23, Awarded: 9, Publications: 72, Citations: 430, GrantUSD: 490000 },
+      { Year: 2024, College: 'CAVM', Funding: 'National / NCST Grant', Partner: 'RAB / Precision Agriculture', Tier: 'Scopus / WoS Q1-Q2', Proposals: 44, Awarded: 17, Publications: 164, Citations: 1180, GrantUSD: 670000 },
+      { Year: 2025, College: 'CMHS', Funding: 'Competitive International Grant', Partner: 'ARUA Centers of Excellence', Tier: 'Scopus / WoS Q1-Q2', Proposals: 74, Awarded: 29, Publications: 294, Citations: 1620, GrantUSD: 2780000 },
+      { Year: 2025, College: 'CST', Funding: 'Competitive International Grant', Partner: 'Carnegie / Data Science & AI', Tier: 'Scopus / WoS Q1-Q2', Proposals: 56, Awarded: 21, Publications: 215, Citations: 980, GrantUSD: 1490000 },
+      { Year: 2025, College: 'CAFF', Funding: 'Competitive International Grant', Partner: 'Horizon Europe / Biodiversity', Tier: 'Scopus / WoS Q1-Q2', Proposals: 19, Awarded: 7, Publications: 54, Citations: 240, GrantUSD: 480000 },
+      { Year: 2026, College: 'CMHS', Funding: 'Competitive International Grant', Partner: 'Horizon Europe / Global Health', Tier: 'Scopus / WoS Q1-Q2', Proposals: 82, Awarded: 32, Publications: 312, Citations: 840, GrantUSD: 3150000 },
+      { Year: 2026, College: 'CST', Funding: 'Bilateral Partnership Grant', Partner: 'UR-Sweden Sida Program', Tier: 'Scopus / WoS Q1-Q2', Proposals: 59, Awarded: 23, Publications: 228, Citations: 560, GrantUSD: 1620000 },
+      { Year: 2026, College: 'CVAS', Funding: 'Competitive International Grant', Partner: 'One Health Veterinary Network', Tier: 'Scopus / WoS Q1-Q2', Proposals: 17, Awarded: 6, Publications: 46, Citations: 135, GrantUSD: 410000 }
+    ];
+
+    let selectedCollege = 'ALL';
+    let charts = {};
+
+    Chart.defaults.color = '#94A3B8';
+    Chart.defaults.font.family = "'Segoe UI', sans-serif";
+    Chart.defaults.font.size = 11;
+
+    // Flexible CSV Ingestion (Handles any year span and standard UR CSV column naming)
+    document.getElementById('csvFileInput').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+          if (results.data && results.data.length > 0) {
+            rawData = results.data.map(row => {
+              const yearVal = parseInt(row.Year || row.Publication_Year || row.Academic_Year || new Date().getFullYear());
+              const collegeVal = (row.College || row.Unit || row.Entity || 'CMHS').toString().trim().toUpperCase();
+              const fundingVal = (row.Funding_Type || row.Funding || row.Grant_Source || 'Competitive International Grant').toString().trim();
+              const partnerVal = (row.Grant_Partner || row.Partnership || row.Partner || 'UR Strategic Consortium').toString().trim();
+              const tierVal = (row.Journal_Tier || row.Indexing || row.Tier || 'Scopus / WoS Q1-Q2').toString().trim();
+              const pubCount = parseInt(row.Publications_Count || row.Publications || row.Count || 1);
+              const citCount = parseInt(row.Citations || row.Citation_Count || 0);
+              const budgetVal = parseFloat(row.Grant_USD || row.Grant_Budget || row.Amount || 0);
+              const propVal = parseInt(row.Proposals || row.Proposals_Submitted || Math.max(1, Math.round(pubCount * 0.28)));
+              const awdVal = parseInt(row.Awarded || row.Grants_Awarded || Math.max(1, Math.round(propVal * 0.38)));
+
+              return {
+                Year: isNaN(yearVal) ? new Date().getFullYear() : yearVal,
+                College: collegeVal,
+                Funding: fundingVal,
+                Partner: partnerVal,
+                Tier: tierVal,
+                Proposals: isNaN(propVal) ? 1 : propVal,
+                Awarded: isNaN(awdVal) ? 1 : awdVal,
+                Publications: isNaN(pubCount) ? 1 : pubCount,
+                Citations: isNaN(citCount) ? 0 : citCount,
+                GrantUSD: isNaN(budgetVal) ? 0 : budgetVal
+              };
+            });
+
+            document.getElementById('dataSourceBadge').textContent = `● Live Dataset: ${file.name} (${rawData.length} records)`;
+            populateDropdowns();
+            applyFilters();
+          }
+        }
+      });
+    });
+
+    function getHorizonSpan(dataSet) {
+      if (!dataSet || dataSet.length === 0) return { min: 2013, max: 2026 };
+      const yrs = dataSet.map(d => d.Year);
+      return { min: Math.min(...yrs), max: Math.max(...yrs) };
+    }
+
+    function populateDropdowns() {
+      const span = getHorizonSpan(rawData);
+      document.getElementById('horizonPill').textContent = `Horizon: ${span.min} – ${span.max}+ (Unrestricted)`;
+      document.getElementById('horizonSummary').textContent = `Active Span: ${span.min} to ${span.max} (${span.max - span.min + 1} yrs). Automatically expands as new annual cohorts are logged.`;
+
+      const years = [...new Set(rawData.map(d => d.Year))].sort((a, b) => b - a);
+      const fundings = [...new Set(rawData.map(d => d.Funding))].sort();
+      const partners = [...new Set(rawData.map(d => d.Partner))].sort();
+      const tiers = [...new Set(rawData.map(d => d.Tier))].sort();
+
+      fillSelect('filterYear', years, `All Recorded Years (${span.min}–${span.max})`);
+      fillSelect('filterFunding', fundings, 'All Funding Mechanisms');
+      fillSelect('filterPartner', partners, 'All Strategic Partnerships');
+      fillSelect('filterTier', tiers, 'All Indexing Tiers');
+    }
+
+    function fillSelect(id, items, defaultText) {
+      const sel = document.getElementById(id);
+      const current = sel.value;
+      sel.innerHTML = `<option value="ALL">${defaultText}</option>`;
+      items.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item;
+        opt.textContent = item;
+        sel.appendChild(opt);
+      });
+      if ([...sel.options].some(o => o.value === current)) sel.value = current;
+    }
+
+    function selectCollege(col) {
+      selectedCollege = col;
+      document.querySelectorAll('.college-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.college === col);
+      });
+      applyFilters();
+    }
+
+    function resetFilters() {
+      selectedCollege = 'ALL';
+      document.querySelectorAll('.college-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.college === 'ALL');
+      });
+      document.getElementById('filterYear').value = 'ALL';
+      document.getElementById('filterFunding').value = 'ALL';
+      document.getElementById('filterPartner').value = 'ALL';
+      document.getElementById('filterTier').value = 'ALL';
+      document.getElementById('filterSearch').value = '';
+      applyFilters();
+    }
+
+    function getFilteredData() {
+      const yr = document.getElementById('filterYear').value;
+      const fn = document.getElementById('filterFunding').value;
+      const pt = document.getElementById('filterPartner').value;
+      const tr = document.getElementById('filterTier').value;
+      const q = document.getElementById('filterSearch').value.toLowerCase().trim();
+
+      return rawData.filter(d => {
+        if (selectedCollege !== 'ALL' && d.College !== selectedCollege) return false;
+        if (yr !== 'ALL' && String(d.Year) !== yr) return false;
+        if (fn !== 'ALL' && d.Funding !== fn) return false;
+        if (pt !== 'ALL' && d.Partner !== pt) return false;
+        if (tr !== 'ALL' && d.Tier !== tr) return false;
+        if (q && !(
+          d.College.toLowerCase().includes(q) ||
+          d.Funding.toLowerCase().includes(q) ||
+          d.Partner.toLowerCase().includes(q) ||
+          d.Tier.toLowerCase().includes(q)
+        )) return false;
+        return true;
+      });
+    }
+
+    function applyFilters() {
+      const filtered = getFilteredData();
+      updateKPIsAndInsights(filtered);
+      renderCharts(filtered);
+      renderTable(filtered);
+    }
+
+    function updateKPIsAndInsights(data) {
+      const totalPubs = data.reduce((sum, d) => sum + d.Publications, 0);
+      const grantPubs = data
+        .filter(d => !d.Funding.toLowerCase().includes('self-funded') && !d.Funding.toLowerCase().includes('institutional'))
+        .reduce((sum, d) => sum + d.Publications, 0);
+      const totalCitations = data.reduce((sum, d) => sum + d.Citations, 0);
+      const totalGrantUSD = data.reduce((sum, d) => sum + d.GrantUSD, 0);
+      const totalProposals = data.reduce((sum, d) => sum + d.Proposals, 0);
+      const totalAwarded = data.reduce((sum, d) => sum + d.Awarded, 0);
+
+      const grantShare = totalPubs > 0 ? ((grantPubs / totalPubs) * 100).toFixed(1) : '0.0';
+      const citPerPub = totalPubs > 0 ? (totalCitations / totalPubs).toFixed(1) : '0.0';
+
+      // Dynamic CAGR calculation across whatever years are in the filtered view
+      const yrs = [...new Set(data.map(d => d.Year))].sort((a, b) => a - b);
+      let cagrText = 'Single-Year Snapshot';
+      let growthNarrative = 'Select multi-year horizon to evaluate long-term compound annual growth.';
+      if (yrs.length >= 2) {
+        const minY = yrs[0];
+        const maxY = yrs[yrs.length - 1];
+        const startPubs = data.filter(d => d.Year === minY).reduce((s, d) => s + d.Publications, 0) || 1;
+        const endPubs = data.filter(d => d.Year === maxY).reduce((s, d) => s + d.Publications, 0);
+        const n = maxY - minY;
+        const cagr = ((Math.pow(endPubs / startPubs, 1 / n) - 1) * 100).toFixed(1);
+        cagrText = `${cagr >= 0 ? '+' : ''}${cagr}% CAGR (${minY}–${maxY})`;
+        growthNarrative = `Output expanded from <strong>${startPubs.toLocaleString()}</strong> (${minY}) to <strong>${endPubs.toLocaleString()}</strong> (${maxY}), achieving a <strong>${cagr}%</strong> compound annual growth rate.`;
+      }
+
+      // Top College Insight
+      const colTotals = {};
+      data.forEach(d => colTotals[d.College] = (colTotals[d.College] || 0) + d.Publications);
+      const sortedCols = Object.entries(colTotals).sort((a, b) => b[1] - a[1]);
+      const topCol = sortedCols[0] || ['N/A', 0];
+      const topColShare = totalPubs > 0 ? ((topCol[1] / totalPubs) * 100).toFixed(1) : '0.0';
+
+      // Grant Conversion Insight
+      const winRate = totalProposals > 0 ? ((totalAwarded / totalProposals) * 100).toFixed(1) : '0.0';
+      const pubsPerAward = totalAwarded > 0 ? (grantPubs / totalAwarded).toFixed(1) : '0.0';
+
+      // High-Impact Quality Insight (Q1-Q2)
+      const q1q2Pubs = data.filter(d => d.Tier.includes('Q1-Q2')).reduce((s, d) => s + d.Publications, 0);
+      const q1q2Share = totalPubs > 0 ? ((q1q2Pubs / totalPubs) * 100).toFixed(1) : '0.0';
+
+      // Update Top KPI Cards
+      document.getElementById('kpiTotalPubs').textContent = totalPubs.toLocaleString();
+      document.getElementById('kpiCagrLabel').textContent = cagrText;
+      document.getElementById('kpiGrantShare').textContent = `${grantShare}%`;
+      document.getElementById('kpiGrantValue').textContent = `$${(totalGrantUSD / 1000000).toFixed(2)}M Mobilized`;
+      document.getElementById('kpiCitations').textContent = totalCitations >= 1000
+        ? (totalCitations / 1000).toFixed(2) + 'K'
+        : totalCitations.toLocaleString();
+      document.getElementById('kpiCitPerPub').textContent = `${citPerPub} Citations / Pub`;
+
+      // Update Executive Intelligence Strip
+      document.getElementById('insightGrowth').innerHTML = growthNarrative;
+      document.getElementById('insightCollege').innerHTML = `<strong>${topCol[0]}</strong> leads institutional output with <strong>${topCol[1].toLocaleString()}</strong> publications (<strong>${topColShare}%</strong> of active scope).`;
+      document.getElementById('insightGrant').innerHTML = `<strong>${winRate}%</strong> grant proposal award rate (${totalAwarded}/${totalProposals}), yielding <strong>${pubsPerAward}</strong> publications per awarded grant.`;
+      document.getElementById('insightQuality').innerHTML = `<strong>${q1q2Share}%</strong> of publications appear in premier <strong>Q1–Q2 Scopus/WoS</strong> venues, driving <strong>${citPerPub}</strong> citations per paper.`;
+    }
+
+    function destroyChart(id) {
+      if (charts[id]) charts[id].destroy();
+    }
+
+    function renderCharts(data) {
+      const collegeOrder = ['CMHS', 'CST', 'CAVM', 'CBE', 'CASS', 'CE', 'CAFF', 'CVAS'];
+      const totalAll = data.reduce((s, d) => s + d.Publications, 0) || 1;
+      const collegeCounts = collegeOrder.map(c =>
+        data.filter(d => d.College === c).reduce((s, d) => s + d.Publications, 0)
+      );
+
+      // 1. Publications by Colleges
+      destroyChart('chartColleges');
+      charts['chartColleges'] = new Chart(document.getElementById('chartColleges'), {
+        type: 'bar',
+        data: {
+          labels: collegeOrder,
+          datasets: [{
+            label: 'Publications',
+            data: collegeCounts,
+            backgroundColor: '#1E90FF',
+            borderRadius: 2,
+            barThickness: 13
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: ctx => ` ${ctx.raw.toLocaleString()} pubs (${((ctx.raw / totalAll) * 100).toFixed(1)}%)`
+              }
+            }
+          },
+          scales: {
+            x: { grid: { color: 'rgba(255,255,255,0.05)' } },
+            y: { grid: { display: false }, ticks: { color: '#F8FAFC', font: { weight: '600' } } }
+          }
+        }
+      });
+
+      // 2. Publications by Grant Stream
+      const fundingGroups = {};
+      data.forEach(d => fundingGroups[d.Funding] = (fundingGroups[d.Funding] || 0) + d.Publications);
+      destroyChart('chartFundingDonut');
+      charts['chartFundingDonut'] = new Chart(document.getElementById('chartFundingDonut'), {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(fundingGroups),
+          datasets: [{
+            data: Object.values(fundingGroups),
+            backgroundColor: ['#1E90FF', '#38BDF8', '#1A637B', '#E2E8F0'],
+            borderColor: '#161C26',
+            borderWidth: 3
+          }]
+        },
+        options: {
+          cutout: '64%',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'right', labels: { boxWidth: 10, padding: 10, color: '#E2E8F0' } }
+          }
+        }
+      });
+
+      // 3. Longitudinal Trend Across All Recorded Years
+      const years = [...new Set(data.map(d => d.Year))].sort((a, b) => a - b);
+      const grantSeries = years.map(y =>
+        data.filter(d => d.Year === y && !d.Funding.toLowerCase().includes('self-funded'))
+            .reduce((s, d) => s + d.Publications, 0)
+      );
+      const instSeries = years.map(y =>
+        data.filter(d => d.Year === y && d.Funding.toLowerCase().includes('self-funded'))
+            .reduce((s, d) => s + d.Publications, 0)
+      );
+
+      destroyChart('chartTrendYears');
+      charts['chartTrendYears'] = new Chart(document.getElementById('chartTrendYears'), {
+        type: 'bar',
+        data: {
+          labels: years,
+          datasets: [
+            { label: 'Grant & Partner Funded', data: grantSeries, backgroundColor: '#1E90FF' },
+            { label: 'Institutional / Internal', data: instSeries, backgroundColor: '#E2E8F0' }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { stacked: true, grid: { display: false }, ticks: { color: '#CBD5E1' } },
+            y: { stacked: true, grid: { color: 'rgba(255,255,255,0.06)' } }
+          },
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 10, color: '#CBD5E1' } }
+          }
+        }
+      });
+
+      // 4. Top Partnerships Horizontal Bar
+      const partnerMap = {};
+      data.forEach(d => partnerMap[d.Partner] = (partnerMap[d.Partner] || 0) + d.Publications);
+      const topPartners = Object.entries(partnerMap).sort((a, b) => b[1] - a[1]).slice(0, 6);
+
+      destroyChart('chartPartnerships');
+      charts['chartPartnerships'] = new Chart(document.getElementById('chartPartnerships'), {
+        type: 'bar',
+        data: {
+          labels: topPartners.map(p => p[0].length > 26 ? p[0].slice(0, 24) + '…' : p[0]),
+          datasets: [{
+            label: 'Publications',
+            data: topPartners.map(p => p[1]),
+            backgroundColor: '#2682A1',
+            borderRadius: 2,
+            barThickness: 14
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: 'rgba(255,255,255,0.05)' } },
+            y: { grid: { display: false }, ticks: { color: '#F8FAFC' } }
+          }
+        }
+      });
+
+      // 5. Indexing Tier Donut
+      const tierMap = {};
+      data.forEach(d => tierMap[d.Tier] = (tierMap[d.Tier] || 0) + d.Publications);
+
+      destroyChart('chartTierDonut');
+      charts['chartTierDonut'] = new Chart(document.getElementById('chartTierDonut'), {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(tierMap),
+          datasets: [{
+            data: Object.values(tierMap),
+            backgroundColor: ['#1E90FF', '#1A637B', '#94A3B8'],
+            borderColor: '#161C26',
+            borderWidth: 3
+          }]
+        },
+        options: {
+          cutout: '64%',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'right', labels: { boxWidth: 10, color: '#E2E8F0' } }
+          }
+        }
+      });
+
+      // 6. Competitive vs Bilateral Growth Trend
+      const compSeries = years.map(y =>
+        data.filter(d => d.Year === y && d.Funding.toLowerCase().includes('competitive'))
+            .reduce((s, d) => s + d.Publications, 0)
+      );
+      const bilatSeries = years.map(y =>
+        data.filter(d => d.Year === y && !d.Funding.toLowerCase().includes('competitive'))
+            .reduce((s, d) => s + d.Publications, 0)
+      );
+
+      destroyChart('chartPartnershipTrend');
+      charts['chartPartnershipTrend'] = new Chart(document.getElementById('chartPartnershipTrend'), {
+        type: 'bar',
+        data: {
+          labels: years,
+          datasets: [
+            { label: 'Competitive International Grants', data: compSeries, backgroundColor: '#1E90FF' },
+            { label: 'Bilateral & National Partnerships', data: bilatSeries, backgroundColor: '#38BDF8' }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { stacked: true, grid: { display: false }, ticks: { color: '#CBD5E1' } },
+            y: { stacked: true, grid: { color: 'rgba(255,255,255,0.06)' } }
+          },
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 10, color: '#CBD5E1' } }
+          }
+        }
+      });
+
+      // TAB 2 CHARTS: Grant Proposals Funnel & ROI
+      const totProp = data.reduce((s, d) => s + d.Proposals, 0);
+      const totAwd = data.reduce((s, d) => s + d.Awarded, 0);
+      const totPubs = data.reduce((s, d) => s + d.Publications, 0);
+      const q1Pubs = data.filter(d => d.Tier.includes('Q1-Q2')).reduce((s, d) => s + d.Publications, 0);
+
+      destroyChart('chartGrantFunnel');
+      charts['chartGrantFunnel'] = new Chart(document.getElementById('chartGrantFunnel'), {
+        type: 'bar',
+        data: {
+          labels: ['1. Proposals Submitted', '2. Grants Awarded', '3. Peer-Reviewed Outputs', '4. Q1/Q2 High-Impact Pubs'],
+          datasets: [{
+            label: 'Count',
+            data: [totProp, totAwd, totPubs, q1Pubs],
+            backgroundColor: ['#1A637B', '#2682A1', '#1E90FF', '#38BDF8'],
+            borderRadius: 4
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: 'rgba(255,255,255,0.05)' } },
+            y: { grid: { display: false }, ticks: { color: '#F8FAFC', font: { weight: '600' } } }
+          }
+        }
+      });
+
+      const usdByCollege = collegeOrder.map(c =>
+        +(data.filter(d => d.College === c).reduce((s, d) => s + d.GrantUSD, 0) / 1000000).toFixed(2)
+      );
+
+      destroyChart('chartGrantROI');
+      charts['chartGrantROI'] = new Chart(document.getElementById('chartGrantROI'), {
+        type: 'bar',
+        data: {
+          labels: collegeOrder,
+          datasets: [
+            { label: 'Grant Funding ($ Millions)', data: usdByCollege, backgroundColor: '#1E90FF', yAxisID: 'y' },
+            { label: 'Publications Produced', data: collegeCounts, backgroundColor: '#38BDF8', yAxisID: 'y1' }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { type: 'linear', position: 'left', grid: { color: 'rgba(255,255,255,0.05)' }, title: { display: true, text: 'USD ($M)' } },
+            y1: { type: 'linear', position: 'right', grid: { display: false }, title: { display: true, text: 'Publications' } }
+          }
+        }
+      });
+
+      // TAB 3 CHARTS: Partnership Impact & Citation Velocity
+      const pImpactLabels = topPartners.map(p => p[0].length > 22 ? p[0].slice(0, 20) + '…' : p[0]);
+      const pPubs = topPartners.map(p => p[1]);
+      const pCits = topPartners.map(p => data.filter(d => d.Partner === p[0]).reduce((s, d) => s + d.Citations, 0));
+
+      destroyChart('chartPartnerImpact');
+      charts['chartPartnerImpact'] = new Chart(document.getElementById('chartPartnerImpact'), {
+        type: 'bar',
+        data: {
+          labels: pImpactLabels,
+          datasets: [
+            { label: 'Publications', data: pPubs, backgroundColor: '#1E90FF' },
+            { label: 'Citations (÷10)', data: pCits.map(c => Math.round(c / 10)), backgroundColor: '#38BDF8' }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { grid: { display: false } },
+            y: { grid: { color: 'rgba(255,255,255,0.05)' } }
+          }
+        }
+      });
+
+      const citByYear = years.map(y => data.filter(d => d.Year === y).reduce((s, d) => s + d.Citations, 0));
+      destroyChart('chartCitationTrend');
+      charts['chartCitationTrend'] = new Chart(document.getElementById('chartCitationTrend'), {
+        type: 'line',
+        data: {
+          labels: years,
+          datasets: [{
+            label: 'Annual Citations Accrued',
+            data: citByYear,
+            borderColor: '#38BDF8',
+            backgroundColor: 'rgba(56, 189, 248, 0.15)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { grid: { display: false } },
+            y: { grid: { color: 'rgba(255,255,255,0.05)' } }
+          }
+        }
+      });
+    }
+
+    function renderTable(data) {
+      const tbody = document.getElementById('ledgerBody');
+      const sorted = [...data].sort((a, b) => b.Year - a.Year || b.Publications - a.Publications);
+      document.getElementById('tableCountLabel').textContent = `Showing ${sorted.length} longitudinal cohorts`;
+
+      tbody.innerHTML = sorted.map(row => {
+        let badgeClass = 'tag-grant';
+        if (row.Funding.toLowerCase().includes('bilateral')) badgeClass = 'tag-partner';
+        if (row.Funding.toLowerCase().includes('self-funded')) badgeClass = 'tag-internal';
+
+        return `
+          <tr>
+            <td><strong>${row.Year}</strong></td>
+            <td><strong>${row.College}</strong></td>
+            <td><span class="tag ${badgeClass}">${row.Funding}</span></td>
+            <td>${row.Partner}</td>
+            <td>${row.Tier}</td>
+            <td>${row.Proposals.toLocaleString()}</td>
+            <td>${row.Awarded.toLocaleString()}</td>
+            <td><strong>${row.Publications.toLocaleString()}</strong></td>
+            <td>${row.Citations.toLocaleString()}</td>
+            <td>$${row.GrantUSD.toLocaleString()}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Tab Navigation
+    function switchTab(tabId, el) {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      el.classList.add('active');
+
+      if (tabId === 'tab-ledger') {
+        document.getElementById('ledgerSection').scrollIntoView({ behavior: 'smooth' });
+        return;
+      }
+
+      document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    // Modal & Export
+    function openModal() { document.getElementById('entryModal').style.display = 'flex'; }
+    function closeModal() { document.getElementById('entryModal').style.display = 'none'; }
+
+    function saveNewRecord() {
+      const newEntry = {
+        Year: parseInt(document.getElementById('mYear').value) || new Date().getFullYear(),
+        College: document.getElementById('mCollege').value,
+        Funding: document.getElementById('mFunding').value,
+        Partner: document.getElementById('mPartner').value.trim() || 'UR Strategic Consortium',
+        Tier: document.getElementById('mTier').value,
+        Proposals: parseInt(document.getElementById('mProposals').value) || 0,
+        Awarded: parseInt(document.getElementById('mAwarded').value) || 0,
+        Publications: parseInt(document.getElementById('mCount').value) || 1,
+        Citations: parseInt(document.getElementById('mCitations').value) || 0,
+        GrantUSD: parseFloat(document.getElementById('mBudget').value) || 0
+      };
+      rawData.push(newEntry);
+      populateDropdowns();
+      applyFilters();
+      closeModal();
+    }
+
+    function exportFilteredCSV() {
+      const filtered = getFilteredData();
+      const csv = Papa.unparse(filtered);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `UR_IURDAS_Strategic_Publications_Grants_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    }
+
+    // Initialize Portal
+    populateDropdowns();
+    applyFilters();
+  </script>
+</body>
+</html>
